@@ -1,0 +1,145 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<!--
+code from: http://www.roseindia.net/ajax/File-Upload.shtml
+-->
+<meta charset="UTF-8">
+<title>Ajax Upload</title>
+<script type="text/javascript">
+	var req;
+
+	function ajaxFunction() {
+		var url = "example/FileUploadServlet";
+
+		if (window.XMLHttpRequest) {
+			req = new XMLHttpRequest();
+			req.onreadystatechange = processStateChange;
+
+			try {
+				req.open("GET", url, true);
+			} catch (e) {
+				alert(e);
+			}
+			req.send(null);
+		} else if (window.ActiveXObject) {
+			req = new ActiveXObject("Microsoft.XMLHTTP");
+
+			if (req) {
+				req.onreadystatechange = processStateChange;
+				req.open("GET", url, true);
+				req.send();
+			}
+		}
+	}
+
+	function processStateChange() {
+		if (req.readyState == 4) {
+			if (req.status == 200) {
+				var xml = req.responseXML;
+				var isNotFinished = xml.getElementsByTagName("finished")[0];
+				var myBytesRead = xml.getElementsByTagName("bytes_read")[0];
+				var myContentLength = xml
+						.getElementsByTagName("content_length")[0];
+				var myPercent = xml.getElementsByTagName("percent_complete")[0];
+				if ((isNotFinished == null) && (myPercent == null)) {
+					document.getElementById("initializing").style.visibility = "visible";
+					window.setTimeout("ajaxFunction();", 100);
+				} else {
+					document.getElementById("initializing").style.visibility = "hidden";
+					document.getElementById("progressBarTable").style.visibility = "visible";
+					document.getElementById("percentCompleteTable").style.visibility = "visible";
+					document.getElementById("bytesRead").style.visibility = "visible";
+
+					myBytesRead = myBytesRead.firstChild.data;
+					myContentLength = myContentLength.firstChild.data;
+
+					if (myPercent != null) {
+						myPercent = myPercent.firstChild.data;
+
+						document.getElementById("progressBar").style.width = myPercent
+								+ "%";
+						document.getElementById("bytesRead").innerHTML = myBytesRead
+								+ " of " + myContentLength + " bytes read";
+						document.getElementById("percentComplete").innerHTML = myPercent
+								+ "100%";
+						window.setTimeout("ajaxFunction();", 100);
+					} else {
+						document.getElementById("bytesRead").style.visibility = "hidden";
+						document.getElementById("progressBar").style.width = "100%";
+						document.getElementById("percentComplete").innerHTML = "File Uploading Done!";
+						document.getElementById("txtFile").value = "";
+					}
+				}
+			} else {
+				alert(req.statusText);
+			}
+		}
+	}
+</script>
+</head>
+<body>
+	<iframe id="uploadFrameID" name="uploadFrame" height="0" width="0"
+		frameborder="0" scrolling="yes"></iframe>
+	<form id="myForm" enctype="multipart/form-data" method="post"
+		target="uploadFrame" action="example/FileUploadServlet"
+		onsubmit="ajaxFunction()">
+		<input type="file" name="txtFile" id="txtFile" /><br /> <input
+			type="submit" id="submitID" name="submit" value="Upload" />
+	</form>
+
+	<div id="initializing"
+		style="visibility: hidden; position: absolute; top: 100px;">
+		<table width="100%" style="border: 1px; background-color: black;">
+			<tr>
+				<td>
+					<table width="100%"
+						style="border: 1px; background-color: black; color: white;">
+						<tr>
+							<td align="center"><b>Initializing Upload...</b></td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="progressBarTable"
+		style="visibility: hidden; position: absolute; top: 100px;">
+		<table width="100%" style="border: 1px; color: white;">
+			<tr>
+				<td>
+					<table id="progressBar" width="100%">
+						<tr>
+							<td>&nbsp;</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+		<table width="100%" style="background-color: white; color: black;">
+			<tr>
+				<td align="center" nowrap="nowrap"><span id="bytesRead"
+					style="font-weight: bold;">&nbsp;</span></td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="percentCompleteTable" align="center"
+		style="visibility: hidden; position: absolute; top: 100px;">
+		<table width="100%" style="border: 1px;">
+			<tr>
+				<td>
+					<table width="100%" style="border: 1px;">
+						<tr>
+							<td align="center" width="100%"><span id="percentComplete"
+								style="color: blue; font-weight: bold; width: 100%">&nbsp;</span>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	</div>
+</body>
+</html>
